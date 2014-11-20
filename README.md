@@ -1,4 +1,4 @@
-python-mlab-utils
-=================
+MLAB Python Utilities Library
+=============================
 
-MLAB Python utilities library
+MLAB Python utilities library.
