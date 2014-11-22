@@ -163,6 +163,11 @@ class Parser(object):
         success, value = self._parse_expression(tokens)
         return value
 
+    def parse_file(self, file_name):
+        with open(file_name, "r") as f:
+            contents = f.read()
+            return self.parse_string(contents)
+
     def _parse_separator(self, tokens):
         while tokens.peek().type in ("COMMA", "SEMICOLON"):
             tokens.next()

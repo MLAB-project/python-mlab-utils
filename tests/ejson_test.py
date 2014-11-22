@@ -88,3 +88,13 @@ class ParserTest(unittest.TestCase):
         value = parser.parse_string("/* some comment */true")
         self.assertEquals(True, value)
 
+    def test_parse_file(self):
+        parser = ejson.Parser()
+
+        value = parser.parse_file("tests/radio-observer.json")
+        import pprint
+        pprint.pprint(value)
+        self.assertIsInstance(value, dict)
+
+        self.assertEquals("system:capture_1", value["jack_left_port"])
+
