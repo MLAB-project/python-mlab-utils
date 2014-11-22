@@ -92,9 +92,21 @@ class ParserTest(unittest.TestCase):
         parser = ejson.Parser()
 
         value = parser.parse_file("tests/radio-observer.json")
-        import pprint
-        pprint.pprint(value)
+        #import pprint
+        #pprint.pprint(value)
         self.assertIsInstance(value, dict)
 
         self.assertEquals("system:capture_1", value["jack_left_port"])
+
+    def test_syntax_error(self):
+        parser = ejson.Parser()
+
+        value = parser.parse_string("0 0")
+        self.assertIsInstance(value, ejson.ParseError)
+
+        value = parser.parse_string("[ 1, 2, 3 ")
+        self.assertIsInstance(value, ejson.ParseError)
+
+        value = parser.parse_string("{ a: 1, b: 2, c: 3 ")
+        self.assertIsInstance(value, ejson.ParseError)
 

@@ -18,9 +18,16 @@ mlabutils Package
 ---------------------
 
 .. automodule:: mlabutils.ejson
-    :members:
-    :undoc-members:
-    :show-inheritance:
+
+   .. autoclass:: Lexer
+   
+      .. automethod:: scan
+
+   .. autoclass:: Parser
+      
+      .. automethod:: parse_string
+
+      .. automethod:: parse_file
 
 :mod:`utils` Module
 ---------------------

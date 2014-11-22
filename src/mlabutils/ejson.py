@@ -12,7 +12,22 @@ from mlabutils import BufferedIterator
 
 
 class TextLoc(object):
-    """Represents a location in text."""
+    """Represents a location in text.
+
+    .. attribute:: offset
+
+       Offset of the location from the beggining of the text.
+
+    .. attribute:: line
+
+       Line number of the location counted starting from 1.
+
+    .. attribute:: column
+
+       Column within the line of the location.
+
+    """
+
     def __init__(self, offset, line, column):
         self.offset = offset
         self.line = line
@@ -27,6 +42,26 @@ class TextLoc(object):
 
 
 class Token(object):
+    """EJSON token.
+
+    .. attribute:: type
+
+       Type of the token (such as `NUMBER`, `KEYWORD` or `EOF`).
+
+    .. attribute:: location
+
+       Text location at which the token was found. Instance of :class:`TextLoc`.
+
+    .. attribute:: text
+
+       Text of the token (it's value as it appears in the source text).
+
+    .. attribute:: value
+
+       Value of the token. By default, equal to its text. For number literals, for example,
+       this would be an integer or float.
+    """
+
     def __init__(self, type, location, text, value):
         self.type = type
         self.location = location
@@ -153,6 +188,17 @@ class Lexer(object):
             yield Token("EOF", TextLoc(self.offset, self.line, self.column), "", None)
 
 
+class ParseError(object):
+    def __init__(self, token):
+        self.token = token
+
+    def __str__(self):
+        return "Unexpected token at line %d: %r." % (
+            self.token.location.line,
+            self.token.text,
+        )
+
+
 class Parser(object):
     """Extended JSON parser.
     """
@@ -161,6 +207,13 @@ class Parser(object):
         lexer = Lexer()
         tokens = BufferedIterator(lexer.scan(text))
         success, value = self._parse_expression(tokens)
+        if not success:
+            return ParseError(tokens.peek())
+
+        t = tokens.peek()
+        if t.type != "EOF":
+            return ParseError(t)
+
         return value
 
     def parse_file(self, file_name):
@@ -171,6 +224,7 @@ class Parser(object):
     def _parse_separator(self, tokens):
         while tokens.peek().type in ("COMMA", "SEMICOLON"):
             tokens.next()
+        return True, None
 
     def _parse_expression(self, tokens):
         success, value = self._parse_list(tokens)
@@ -223,7 +277,7 @@ class Parser(object):
 
         # Parse right bracket
         if tokens.peek().type != "RBRACKET":
-            return True, values
+            return True, ParseError(tokens.peek())
         tokens.next()
 
         # Return result
@@ -234,7 +288,19 @@ class Parser(object):
             return False, None
         tokens.next()
 
+        success, items = self._parse_dict_items(tokens)
+        if not success:
+            return items
+
+        if tokens.peek().type != "RBRACE":
+            return True, ParseError(tokens.peek())
+        tokens.next()
+
+        return True, items
+
+    def _parse_dict_items(self, tokens):
         elements = {}
+
         while True:
             token = tokens.peek()
 
@@ -252,10 +318,6 @@ class Parser(object):
             elements[token.value] = value
 
             self._parse_separator(tokens)
-
-        if tokens.peek().type != "RBRACE":
-            return True, elements
-        tokens.next()
 
         return True, elements
 
