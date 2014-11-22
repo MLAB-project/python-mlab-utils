@@ -20,7 +20,7 @@ setup(
     description      = 'Common tools and functions for MLAB python modules.',
     long_description = mlabutils.__doc__,
     url              = 'https://github.com/MLAB-project/python-mlab-utils',
-    
+
     #packages    = ['pymlab', 'pymlab.sensors', 'pymlab.tests', ],
     packages    = find_packages("src"),
     package_dir = {'': 'src'},
@@ -29,9 +29,9 @@ setup(
     keywords = ['MLAB', 'library', 'utils', ],
     license     = 'Lesser General Public License v3',
     download_url = 'https://github.com/MLAB-project/python-mlab-utils/archive/0.1.tar.gz',
-    
-    test_suite = 'mlabutils.tests',
-    
+
+    test_suite = 'tests',
+
     classifiers = [
         'Development Status :: 3 - Alpha',
         'Intended Audience :: Science/Research',
