@@ -7,6 +7,10 @@ Author: Jan Milík <milikjan@fit.cvut.cz>
 
 
 import sys
+import cStringIO as StringIO
+
+
+#### TEXT OUTPUT AND PRETTY PRINTING ################################
 
 
 def args_repr(*args, **kwargs):
@@ -63,6 +67,55 @@ class PrettyPrinter(object):
         self._mode_stack = []
         self.new_line = True
         self.max_level = None
+
+        self._multilines = {}
+
+    def get_pprint_method(self, obj):
+        if self.mode is not None:
+            meth = getattr(obj, "__pprint_%s__" % (self.mode, ), None)
+            if meth is not None:
+                return meth
+        return getattr(obj, "__pprint__", None)
+
+    def calculate_multilines(self, obj, map):
+        cached_and_items = map.get(id(obj), None)
+        if cached_and_items is not None:
+            return cached_and_items[0]
+
+        meth = self.get_pprint_method(obj)
+        if meth is not None:
+            map[id(obj)] = (True, 1)
+            return True
+
+        if isinstance(obj, (list, dict)) and len(obj) >= 10:
+            map[id(obj)] = (True, len(obj))
+            return True
+
+        result = False
+        items = 1
+
+        if isinstance(obj, list):
+            for item in obj:
+                self.calculate_multilines(item, map)
+                m, i = map[id(item)]
+                result = result or m
+                items += i
+                if result:
+                    break
+        elif isinstance(obj, dict):
+            for item_key, item_value in obj.iteritems():
+                self.calculate_multilines(item_value, map)
+                m, i = map[id(item_value)]
+                result = result or m
+                items += i
+                if result:
+                    break
+
+        if items >= 10:
+            result = True
+
+        map[id(obj)] = (result, items)
+        return result
 
     @property
     def mode(self):
@@ -123,23 +176,76 @@ class PrettyPrinter(object):
             self.write("[ ... ]")
             return
 
-        if len(value) < 10:
-            self.write("[ ")
-            self.indent(self.CURRENT)
-            for item in value:
+        multiline = self.calculate_multilines(value, self._multilines)
+
+        # if len(value) < 10:
+        #     self.write("[ ")
+        #     self.indent(self.CURRENT)
+        #     for item in value:
+        #         self.format_inner(item, level + 1)
+        #         self.write(", ")
+        #     self.unindent()
+        #     self.write("]")
+        #     return
+
+        if multiline:
+            self.writeln("[")
+            self.indent()
+            for index, item in enumerate(value):
                 self.format_inner(item, level + 1)
-                self.write(", ")
+                if index < len(value) - 1:
+                    self.writeln(",")
+                else:
+                    self.writeln()
             self.unindent()
             self.write("]")
+        else:
+            self.write("[ ")
+            self.indent(self.CURRENT)
+            for index, item in enumerate(value):
+                self.format_inner(item, level + 1)
+                if index < len(value) - 1:
+                    self.write(", ")
+                else:
+                    self.write(" ")
+            self.unindent()
+            self.write("]")
+
+    def format_dict(self, value, level = 0):
+        if (self.max_level is not None) and (level >= self.max_level):
+            self.write("{ ... }")
             return
 
-        self.writeln("[")
-        self.indent()
-        for item in value:
-            self.format_inner(item, level + 1)
-            self.writeln(",")
-        self.unindent()
-        self.write("]")
+        multiline = self.calculate_multilines(value, self._multilines)
+
+        if multiline:
+            self.writeln("{")
+            self.indent()
+            for index, item_key, item_value in enum_dict(value):
+                self.format_inner(item_key, level + 1)
+                self.write(": ")
+                self.indent(self.CURRENT)
+                self.format_inner(item_value, level + 1)
+                if index < len(value) - 1:
+                    self.writeln(",")
+                else:
+                    self.writeln()
+                self.unindent()
+            self.unindent()
+            self.write("}")
+        else:
+            self.write("{ ")
+            self.indent(self.CURRENT)
+            for index, item_key, item_value in enum_dict(value):
+                self.format_inner(item_key, level + 1)
+                self.write(": ")
+                self.format_inner(item_value, level + 1)
+                if index < len(value) - 1:
+                    self.write(", ")
+                else:
+                    self.write(" ")
+            self.unindent()
+            self.write("}")
 
     def format_inner(self, value, level = 0):
         if value in self.visited:
@@ -162,6 +268,10 @@ class PrettyPrinter(object):
             self.format_list(value, level)
             return
 
+        if isinstance(value, dict):
+            self.format_dict(value, level)
+            return
+
         if isinstance(value, basestring):
             if "\n" in value:
                 self.indent()
@@ -175,8 +285,31 @@ class PrettyPrinter(object):
 
     def format(self, value):
         self.visited = []
+        self._multilines = {}
         self.format_inner(value)
         self.visited = None
+
+
+def pprint(value, output = None):
+    printer = PrettyPrinter(output)
+    printer.format(value)
+    printer.writeln()
+
+
+def pprints(value):
+    output = StringIO.StringIO()
+    pprint(value, output)
+    return output.getvalue()
+
+
+#### LANGUAGE UTILITIES #############################################
+
+
+def enum_dict(dictionary):
+    index = 0
+    for key, value in dictionary.iteritems():
+        yield index, key, value
+        index += 1
 
 
 class Enum(object):

@@ -14,17 +14,26 @@ mlabutils Package
     :undoc-members:
     :show-inheritance:
 
-:mod:`ejson` Module
+:mod:`config` Module
 ---------------------
+
+.. automodule:: mlabutils.config
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+:mod:`ejson` Module
+-------------------
 
 .. automodule:: mlabutils.ejson
 
    .. autoclass:: Lexer
-   
+
       .. automethod:: scan
 
    .. autoclass:: Parser
-      
+
       .. automethod:: parse_string
 
       .. automethod:: parse_file

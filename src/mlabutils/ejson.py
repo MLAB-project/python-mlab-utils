@@ -1,6 +1,52 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-"""mlabutils.ejson module.
+"""This is the Extended JSON (EJSON) module of the :mod:`mlabutils` package.
+
+Basic usage of this module is through the :class:`Parser` class::
+
+    import mlabutils.ejson
+
+    parser = mlabutils.ejson.Parser()
+
+    value = parser.parse_string(\"\"\"
+        {
+            // EJSON can contain C++-style single-line comments.
+
+            /* It can also contain C-style multiline comments. */
+
+            # And even bash-style comments.
+
+            # JSON "objects" are dictionaries which map strings
+            # to any other JSON value. Dictionaries are delimitied
+            # by braces { }, and contain zero or more key-value pairs
+            # separated by zero or more commas or semicolons.
+            dictionary: {
+                # Key-value pair is a string or a keyword, followed
+                # by optional colon (:) or equal sign (=) and a EJSON
+                # value (any type)
+                "string_key": "string value",
+
+                # Keywords are just a strings without quotes
+                keyword_key: "string value",
+
+                # Any number of commas or semicolons can appear
+                # after a key-value pair
+                "key1": "value";
+                "key2": "value",
+                "key3": "value",,,,
+                "key4": "value",;,;
+                "key5": "value"
+                "key6": "value",
+            },
+
+            keyword: "value",
+
+            "some_config_value": 123,
+            other_config_value: [ orange, blue, yellow ],
+            yet_another: [ red green brown ],
+        }
+    \"\"\")
+
 
 Author: Jan Milík <milikjan@fit.cvut.cz>
 """
