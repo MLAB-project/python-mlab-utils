@@ -11,6 +11,9 @@ from os import path
 import sys
 import argparse
 
+import lockfile
+import daemon
+
 from mlabutils import config
 
 
@@ -69,6 +72,28 @@ class CLIAppBase(object):
         exit_code = self.run()
         if isinstance(exit_code, int):
             sys.exit(exit_code)
+
+
+class DaemonAppBase(CLIAppBase):
+    def setup_app(self):
+        self.pid_file_name = "/var/run/%s.pid" % (self.app_name, )
+        self.daemon_context = daemon.DaemonContext(
+            pidfile = lockfile.FileLock(self.pid_file_name),
+        )
+    
+    def run(self):
+        if self.daemon_context.pidfile.is_locked():
+            sys.stderr.write("PID file %s is locked. Daemon is probably running.\n" % (
+                self.pid_file_name,
+            ))
+            return 1
+
+        sys.stderr.write("Starting daemon...")
+        with self.daemon_context:
+            self.run_daemon()
+
+    def run_daemon(self):
+        pass
 
 
 def main():
