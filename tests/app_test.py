@@ -1,8 +1,8 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-"""app_test module.
+"""tests.app_test module.
 
-Author: Jan Milík <milikjan@fit.cvut.cz>
+.. moduleauthor: Jan Milík <milikjan@fit.cvut.cz>
 """
 
 
@@ -12,13 +12,19 @@ from mlabutils import app
 
 
 class CLIAppBaseTest(unittest.TestCase):
+    APP_NAME = "test_app"
+
     def test_constructor(self):
         test_app = app.CLIAppBase()
-    
+
     def test_main(self):
-        test_app = app.CLIAppBase(app_name = "test_app")
+        test_app = app.CLIAppBase(app_name = self.APP_NAME)
         test_app.main(arguments = [])
         self.assertIsNotNone(test_app.args)
+
+
+class DaemonAppBase(CLIAppBaseTest):
+    APP_NAME = "test_daemon"
 
 
 def main():

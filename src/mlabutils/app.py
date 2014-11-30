@@ -16,6 +16,7 @@ import lockfile
 import daemon
 
 from mlabutils import config
+from mlabutils.utils import getClassLogger
 
 
 class CLIAppBase(object):
@@ -30,9 +31,11 @@ class CLIAppBase(object):
         self.arg_parser = argparse.ArgumentParser()
         self.args = None
 
+        self.read_user_config = True
+        self.read_system_config = True
         self.config = None
 
-        self.logger = logging.getLogger(type(self).__name__)
+        self.logger = getClassLogger(self)
 
         self.uncaught_exception_exit_code = 1
 
@@ -49,25 +52,61 @@ class CLIAppBase(object):
     def setup_args(self):
         """Override to setup custom comman-line arguments.
         """
-        pass
+        self.arg_parser.add_argument(
+            "-c", "--config",
+            metavar = "CONFIG_FILE",
+            dest = "config_file",
+            help = "configuration file",
+            default = None)
 
     def parse_args(self, arguments = None):
         self.setup_args()
         self.args = self.arg_parser.parse_args(arguments)
 
-    def get_config_file(self):
-        file_name = path.join(os.getenv("HOME"), "." + self.app_name)
-        print file_name
-        if path.isfile(file_name):
-            return file_name
+    def get_config_file(self, log = False):
+        if log:
+            log_fn = lambda f, *a: sys.stderr.write((f + "\n") % a)
+        else:
+            log_fn = lambda *a, **kw: None
+
+        if self.args.config_file is not None:
+            file_name = self.args.config_file
+            if path.isfile(file_name):
+                log_fn("Found config file %s.", file_name)
+                return file_name
+            else:
+                log_fn("Config file %s doesn't exist.", file_name)
+
+        if self.read_user_config:
+            file_name = path.join(
+                os.getenv("HOME"), "." + self.app_name + ".conf")
+            if path.isfile(file_name):
+                log_fn("Found config file %s.", file_name)
+                return file_name
+            else:
+                log_fn("Config file %s doesn't exist.", file_name)
+
+        if self.read_system_config:
+            file_name = path.join("/etc", self.app_name)
+            if path.isfile(file_name):
+                log_fn("Found config file %s.", file_name)
+                return file_name
+            else:
+                log_fn("Config file %s doesn't exist.", file_name)
+
         return None
 
     def read_config(self):
-        file_name = self.get_config_file()
+        file_name = self.get_config_file(True)
         if file_name is None:
-            return
+            sys.stderr.write("No config file found.\n")
+            self.logger.warn("No config file found.")
+            self.config = {}
+            return False
 
+        self.logger.info("Reading config file %s...", file_name)
         self.config = config.load_file(file_name)
+        return True
 
     def setup_logging(self):
         logging.root.handlers = []
