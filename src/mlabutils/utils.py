@@ -6,11 +6,12 @@ Author: Jan Milík <milikjan@fit.cvut.cz>
 """
 
 
+import logging
 import sys
 import cStringIO as StringIO
 
 
-#### TEXT OUTPUT AND PRETTY PRINTING ################################
+#### TEXT OUTPUT AND PRETTY PRINTING ###################################
 
 
 def args_repr(*args, **kwargs):
@@ -302,7 +303,14 @@ def pprints(value):
     return output.getvalue()
 
 
-#### LANGUAGE UTILITIES #############################################
+#### LOGGING UTILITIES #################################################
+
+
+def getClassLogger(instance):
+    return logging.getLogger(type(instance).__name__)
+
+
+#### LANGUAGE UTILITIES ################################################
 
 
 def enum_dict(dictionary):

@@ -3,21 +3,30 @@
 """mlabutils.config module.
 
 .. attribute:: DEFAULT_BUILDER
-    
-    Default :class:`Builder` instance used some of the functions in this module.
+
+    Default :class:`Builder` instance used by some of the functions in this module.
 
 """
 
 
+import logging
+
 from mlabutils import ejson
-from mlabutils.utils import obj_repr
+from mlabutils.utils import obj_repr, getClassLogger
 
 
 class Builder(object):
+    """Builder processes a data structure made of various python data types
+    (lists, dictionaries, integers, strings, etc.), possibly loaded from
+    a config file, and uses it instantiate application objects.
+    """
+
     FACTORY_KEYS = ("type", "factory", )
 
     def __init__(self):
         self.factories = {}
+
+        self.logger = getClassLogger(self)
 
     def add_factory(self, name, factory):
         self.factories[str(name)] = factory
@@ -45,12 +54,15 @@ class Builder(object):
             factory_name = None
             for factory_name_key in self.FACTORY_KEYS:
                 factory_name = config.get(factory_name_key, None)
+            # If the dict doesn't have a factory name,
+            # just return the dict itself.
             if factory_name is None:
                 return new_dict
 
             # Get the factory itself
             factory = self.factories.get(factory_name, None)
             if factory is None:
+
                 factory = FactoryDummy(factory_name)
 
             # Create the instance using the selected factory

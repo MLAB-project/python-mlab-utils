@@ -25,7 +25,7 @@ setup(
     packages    = find_packages("src"),
     package_dir = {'': 'src'},
     provides    = ['mlabutils'],
-    install_requires = [ 'daemon', 'lockfile' ],
+    install_requires = [ 'python-daemon', 'lockfile' ],
     keywords = ['MLAB', 'library', 'utils', ],
     license     = 'Lesser General Public License v3',
     download_url = 'https://github.com/MLAB-project/python-mlab-utils/archive/0.1.tar.gz',
