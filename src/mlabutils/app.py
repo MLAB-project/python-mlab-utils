@@ -107,14 +107,18 @@ class CLIAppBase(object):
         self.logger.info("Reading config file %s...", file_name)
         self.config = config.load_file(file_name)
         return True
-
+    
     def setup_logging(self):
         logging.root.handlers = []
         logging.basicConfig(
             level = logging.INFO,
-            filename = "/home/jan/" + self.app_name + ".log",
+            filename = self.get_default_log_filename(),
             format = "%(asctime)s   %(process)s  %(name)s  %(levelname)s  %(message)s")
-
+    
+    def get_default_log_filename(self):
+        #return path.abspath(path.join(os.getenv("HOME"), self.app_name + ".log"))
+        return "/var/log/%s.log" % (self.app_name, )
+    
     def run(self):
         """Override to implement the application's main method.
         """
