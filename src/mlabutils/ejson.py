@@ -269,7 +269,7 @@ class Parser(object):
 
     def _parse_separator(self, tokens):
         while tokens.peek().type in ("COMMA", "SEMICOLON"):
-            next(tokens)
+            tokens.next()
         return True, None
 
     def _parse_expression(self, tokens):
@@ -295,13 +295,13 @@ class Parser(object):
         t = tokens.peek()
         if not t.type == "NUMBER":
             return False, None
-        next(tokens)
+        tokens.next()
         return True, t.value
 
     def _parse_string(self, tokens):
         t = tokens.peek()
         if t.type in ("STRING", "KEYWORD"):
-            next(tokens)
+            tokens.next()
             return True, t.value
         return False, None
 
@@ -309,7 +309,7 @@ class Parser(object):
         # Parse left bracket
         if tokens.peek().type != "LBRACKET":
             return False, None
-        next(tokens)
+        tokens.next()
 
         # Parse list items
         values = []
@@ -324,7 +324,7 @@ class Parser(object):
         # Parse right bracket
         if tokens.peek().type != "RBRACKET":
             return True, ParseError(tokens.peek())
-        next(tokens)
+        tokens.next()
 
         # Return result
         return True, values
@@ -332,7 +332,7 @@ class Parser(object):
     def _parse_dict(self, tokens):
         if tokens.peek().type != "LBRACE":
             return False, None
-        next(tokens)
+        tokens.next()
 
         success, items = self._parse_dict_items(tokens)
         if not success:
@@ -340,7 +340,7 @@ class Parser(object):
 
         if tokens.peek().type != "RBRACE":
             return True, ParseError(tokens.peek())
-        next(tokens)
+        tokens.next()
 
         return True, items
 
@@ -352,10 +352,10 @@ class Parser(object):
 
             if not token.type in ("STRING", "KEYWORD"):
                 break
-            next(tokens)
+            tokens.next()
 
             if tokens.peek().type in ("COLON", "EQUALS"):
-                next(tokens)
+                tokens.next()
 
             success, value = self._parse_expression(tokens)
             if not success:
