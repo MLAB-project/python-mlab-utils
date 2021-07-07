@@ -95,9 +95,8 @@ class HTTPServerBase(SocketServer.TCPServer):
 
 
 def main():
-    print __doc__
+    print(__doc__)
 
 
 if __name__ == "__main__":
     main()
-
