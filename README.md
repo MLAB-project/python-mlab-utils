@@ -9,7 +9,7 @@ MLAB Python utilities library.
 
 ### Installation 
 
-    sudo apt-get install  python-setuptools docutils-common python3-lockfile
+    sudo apt-get install  python-setuptools docutils-common python3-lockfile python3-daemon
 
     git clone https://github.com/MLAB-project/python-mlab-utils.git
     cd python-mlab-utils/
