@@ -6,7 +6,7 @@ Author: Jan Milík <milikjan@fit.cvut.cz>
 """
 
 
-__version__ = "0.1~dev"
+__version__ = "0.1.2"
 
 
 import itertools
