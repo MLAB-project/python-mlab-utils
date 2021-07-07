@@ -198,7 +198,7 @@ class Lexer(object):
             self.token_specs.append(self._reflect_token(token_name, attr_value))
 
     def _reflect_token(self, name, value):
-        if isinstance(value, basestring):
+        if isinstance(value, str):
             return (name, re.compile(value), lambda t: t)
         return (name, re.compile(value.__doc__), value)
 
@@ -269,7 +269,7 @@ class Parser(object):
 
     def _parse_separator(self, tokens):
         while tokens.peek().type in ("COMMA", "SEMICOLON"):
-            tokens.next()
+            next(tokens)
         return True, None
 
     def _parse_expression(self, tokens):
@@ -295,13 +295,13 @@ class Parser(object):
         t = tokens.peek()
         if not t.type == "NUMBER":
             return False, None
-        tokens.next()
+        next(tokens)
         return True, t.value
 
     def _parse_string(self, tokens):
         t = tokens.peek()
         if t.type in ("STRING", "KEYWORD"):
-            tokens.next()
+            next(tokens)
             return True, t.value
         return False, None
 
@@ -309,7 +309,7 @@ class Parser(object):
         # Parse left bracket
         if tokens.peek().type != "LBRACKET":
             return False, None
-        tokens.next()
+        next(tokens)
 
         # Parse list items
         values = []
@@ -324,7 +324,7 @@ class Parser(object):
         # Parse right bracket
         if tokens.peek().type != "RBRACKET":
             return True, ParseError(tokens.peek())
-        tokens.next()
+        next(tokens)
 
         # Return result
         return True, values
@@ -332,7 +332,7 @@ class Parser(object):
     def _parse_dict(self, tokens):
         if tokens.peek().type != "LBRACE":
             return False, None
-        tokens.next()
+        next(tokens)
 
         success, items = self._parse_dict_items(tokens)
         if not success:
@@ -340,7 +340,7 @@ class Parser(object):
 
         if tokens.peek().type != "RBRACE":
             return True, ParseError(tokens.peek())
-        tokens.next()
+        next(tokens)
 
         return True, items
 
@@ -352,10 +352,10 @@ class Parser(object):
 
             if not token.type in ("STRING", "KEYWORD"):
                 break
-            tokens.next()
+            next(tokens)
 
             if tokens.peek().type in ("COLON", "EQUALS"):
-                tokens.next()
+                next(tokens)
 
             success, value = self._parse_expression(tokens)
             if not success:
